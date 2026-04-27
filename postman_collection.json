@@ -1,0 +1,82 @@
+{
+	"info": {
+		"_postman_id": "b510bacc-44a7-451d-9bdd-99d31e96d1fc",
+		"name": "API Apostas Luta",
+		"description": "Coleção para testar a API de apostas de lutas.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Criar Aposta",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"valor\": 150.00,\n    \"id_luta\": 1,\n    \"id_lutador\": 2,\n    \"id_apostador\": 10\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/apostas",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"apostas"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Listar Todas as Apostas",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/apostas",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"apostas"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Listar Apostas por Apostador",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/apostas?id_apostador=10",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"apostas"
+					],
+					"query": [
+						{
+							"key": "id_apostador",
+							"value": "10"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
