@@ -1,13 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db'); // Arquivo de conexão com o banco
+const db = require('../db'); //banco
 
-// POST: Criar uma nova aposta
+// POST:
 router.post('/', async (req, res) => {
-    // Pegando exatamente os campos definidos pelo grupo
+
     const { valor, id_luta, id_lutador, id_apostador } = req.body;
 
-    // Validação para garantir que nada veio vazio
     if (!valor || !id_luta || !id_lutador || !id_apostador) {
         return res.status(400).json({ erro: 'Os campos valor, id_luta, id_lutador e id_apostador são obrigatórios.' });
     }
@@ -24,7 +23,7 @@ router.post('/', async (req, res) => {
         
         const [result] = await db.execute(query, [valor, id_luta, id_lutador, id_apostador]);
 
-        // Retorna o objeto criado, incluindo o ID gerado pelo banco
+        // Retorna o objeto criado
         res.status(201).json({
             mensagem: 'Aposta registrada com sucesso!',
             aposta: {
@@ -39,7 +38,6 @@ router.post('/', async (req, res) => {
     } catch (error) {
         console.error('Erro ao registrar aposta:', error);
         
-        // Verifica se o erro foi causado por IDs que não existem nas outras tabelas
         if (error.code === 'ER_NO_REFERENCED_ROW_2') {
              return res.status(400).json({ erro: 'O id_luta, id_lutador ou id_apostador fornecido não existe no banco de dados.' });
         }
@@ -47,9 +45,9 @@ router.post('/', async (req, res) => {
     }
 });
 
-// GET: Listar todas as apostas
+// GET
 router.get('/', async (req, res) => {
-    // Filtrar apostas por apostador (ex: /apostas?id_apostador=1)
+    
     const { id_apostador } = req.query; 
 
     try {

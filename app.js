@@ -1,11 +1,11 @@
-// app.js
+
 const express = require('express');
 const app = express();
 const apostasRoutes = require('./routes/apostas');
 
-app.use(express.json()); // Importante para ler o req.body em JSON
+app.use(express.json());
 
-// Define o prefixo da rota
+// rota
 app.use('/apostas', apostasRoutes);
 
 const PORT = 3000;

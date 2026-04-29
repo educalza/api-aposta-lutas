@@ -2,7 +2,7 @@
 CREATE DATABASE IF NOT EXISTS api_apostas;
 USE api_apostas;
 
--- Tabela de apostas (sem Foreign Keys para evitar erros caso as outras tabelas não existam)
+-- Tabela de apostas
 CREATE TABLE IF NOT EXISTS apostas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     valor DECIMAL(10,2) NOT NULL,
