@@ -1,6 +1,14 @@
 const express = require('express');
-const router = express.Router();
-const db = require('../db'); //banco
+const router  = express.Router();
+const db      = require('../db');
+const { demonstrarCripto } = require('../middlewares/cryptoMiddleware');
+
+// ============================================================
+//  POST /apostas/demo-cripto  (rota DIDÁTICA — sem proteção JWT)
+//  Demonstra como a criptografia RSA funciona na prática
+//  Body: { "mensagem": "texto qualquer" }
+// ============================================================
+router.post('/demo-cripto', demonstrarCripto);
 
 // POST:
 router.post('/', async (req, res) => {
