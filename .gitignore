@@ -1,1 +1,7 @@
 node_modules/
+
+# Chaves RSA — NUNCA subir para o Git!
+# A chave privada é o segredo mais importante da aplicação.
+# Se vazar, qualquer pessoa pode gerar tokens JWT válidos.
+keys/
+*.pem
