@@ -55,17 +55,17 @@ const EXPIRACAO_TOKEN = '1h';
 //  Cria um novo usuário com a senha protegida por bcrypt
 // ============================================================
 router.post('/registrar', async (req, res) => {
-    const { usuario, senha } = req.body;
-
-    if (!usuario || !senha) {
-        return res.status(400).json({ erro: 'Campos "usuario" e "senha" são obrigatórios.' });
-    }
-
-    if (senha.length < 6) {
-        return res.status(400).json({ erro: 'A senha deve ter pelo menos 6 caracteres.' });
-    }
-
     try {
+        const { usuario, senha } = req.body || {};
+
+        if (!usuario || !senha) {
+            return res.status(400).json({ erro: 'Campos "usuario" e "senha" são obrigatórios.' });
+        }
+
+        if (senha.length < 6) {
+            return res.status(400).json({ erro: 'A senha deve ter pelo menos 6 caracteres.' });
+        }
+
         // Verifica se o usuário já existe
         const [existente] = await db.execute(
             'SELECT id FROM usuarios WHERE usuario = ?',
@@ -76,17 +76,8 @@ router.post('/registrar', async (req, res) => {
             return res.status(409).json({ erro: 'Nome de usuário já está em uso.' });
         }
 
-        // ─── HASH DA SENHA ───────────────────────────────────────────────────
-        //
-        //  bcrypt.hash(senha, rounds):
-        //    - "rounds" = 10 → realiza 2^10 = 1.024 iterações do hash
-        //    - Quanto maior o número, mais lento (e mais seguro)
-        //    - 10 é o padrão recomendado para produção
-        //    - O resultado inclui o salt embutido no próprio hash
-        //
         const senhaHash = await bcrypt.hash(senha, 10);
 
-        // Salva no banco (NUNCA a senha original, sempre o hash)
         const [resultado] = await db.execute(
             'INSERT INTO usuarios (usuario, senha_hash) VALUES (?, ?)',
             [usuario, senhaHash]
@@ -102,7 +93,11 @@ router.post('/registrar', async (req, res) => {
 
     } catch (error) {
         console.error('Erro ao registrar usuário:', error);
-        res.status(500).json({ erro: 'Erro interno do servidor.' });
+        res.status(500).json({
+            erro: 'Erro interno do servidor.',
+            detalhe: error.message,
+            tipo: error.code || error.name
+        });
     }
 });
 
