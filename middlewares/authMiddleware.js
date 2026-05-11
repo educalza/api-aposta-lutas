@@ -26,12 +26,11 @@ const fs   = require('fs');
 const path = require('path');
 
 // Carrega a chave PÚBLICA — usada apenas para VERIFICAR a assinatura
-// A chave pública não permite criar novos tokens, apenas confirmar que um
-// token existente foi assinado por quem tem a chave privada correspondente.
-const PUBLIC_KEY = fs.readFileSync(
-    path.join(__dirname, '..', 'keys', 'public.pem'),
-    'utf8'
-);
+// No Vercel, a chave vem de uma variável de ambiente (já que keys/ está no .gitignore)
+// Localmente, lê do arquivo
+const PUBLIC_KEY = process.env.JWT_PUBLIC_KEY
+    ? process.env.JWT_PUBLIC_KEY.replace(/\\n/g, '\n')
+    : fs.readFileSync(path.join(__dirname, '..', 'keys', 'public.pem'), 'utf8');
 
 /**
  * Middleware que protege as rotas

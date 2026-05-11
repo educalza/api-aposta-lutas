@@ -32,16 +32,22 @@ app.use('/auth', authRoutes);
 //  Se o token for inválido, a requisição para aqui (erro 401)
 app.use('/apostas', verificarToken, apostasRoutes);
 
-const PORT = 3000;
-app.listen(PORT, () => {
-    console.log(`\n🚀 Servidor rodando na porta ${PORT}`);
-    console.log(`\n📋 Rotas disponíveis:`);
-    console.log(`   POST /auth/registrar    → criar conta (público)`);
-    console.log(`   POST /auth/login        → fazer login e obter token (público)`);
-    console.log(`   POST /apostas/demo-cripto → demo RSA (público)`);
-    console.log(`\n   🔒 Rotas protegidas (exigem: Authorization: Bearer <token>)`);
-    console.log(`   GET    /apostas         → listar apostas`);
-    console.log(`   POST   /apostas         → criar aposta`);
-    console.log(`   PUT    /apostas/:id     → editar aposta`);
-    console.log(`   DELETE /apostas/:id     → remover aposta\n`);
-});
+// ─── SERVIDOR LOCAL (só roda fora do Vercel) ─────────────────
+if (!process.env.VERCEL) {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`\n🚀 Servidor rodando na porta ${PORT}`);
+        console.log(`\n📋 Rotas disponíveis:`);
+        console.log(`   POST /auth/registrar    → criar conta (público)`);
+        console.log(`   POST /auth/login        → fazer login e obter token (público)`);
+        console.log(`   POST /apostas/demo-cripto → demo RSA (público)`);
+        console.log(`\n   🔒 Rotas protegidas (exigem: Authorization: Bearer <token>)`);
+        console.log(`   GET    /apostas         → listar apostas`);
+        console.log(`   POST   /apostas         → criar aposta`);
+        console.log(`   PUT    /apostas/:id     → editar aposta`);
+        console.log(`   DELETE /apostas/:id     → remover aposta\n`);
+    });
+}
+
+// ─── EXPORT PARA O VERCEL (Serverless Function) ──────────────
+module.exports = app;
