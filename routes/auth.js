@@ -38,9 +38,12 @@ const db      = require('../db');
 
 // Carrega a chave PRIVADA — usada para ASSINAR o JWT
 // No Vercel: variável de ambiente | Localmente: arquivo .pem
-const PRIVATE_KEY = process.env.JWT_PRIVATE_KEY
-    ? process.env.JWT_PRIVATE_KEY.replace(/\\n/g, '\n')
-    : fs.readFileSync(path.join(__dirname, '..', 'keys', 'private.pem'), 'utf8');
+let PRIVATE_KEY;
+if (process.env.JWT_PRIVATE_KEY) {
+    PRIVATE_KEY = process.env.JWT_PRIVATE_KEY.split('\\n').join('\n');
+} else {
+    PRIVATE_KEY = fs.readFileSync(path.join(__dirname, '..', 'keys', 'private.pem'), 'utf8');
+}
 
 // Tempo de expiração do token (1 hora)
 // Após esse tempo, o usuário precisa fazer login novamente

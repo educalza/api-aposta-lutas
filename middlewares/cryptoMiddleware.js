@@ -41,12 +41,17 @@ const fs     = require('fs');
 const path   = require('path');
 
 // Carrega as duas chaves (env var no Vercel, arquivo local)
-const PUBLIC_KEY = process.env.JWT_PUBLIC_KEY
-    ? process.env.JWT_PUBLIC_KEY.replace(/\\n/g, '\n')
-    : fs.readFileSync(path.join(__dirname, '..', 'keys', 'public.pem'), 'utf8');
-const PRIVATE_KEY = process.env.JWT_PRIVATE_KEY
-    ? process.env.JWT_PRIVATE_KEY.replace(/\\n/g, '\n')
-    : fs.readFileSync(path.join(__dirname, '..', 'keys', 'private.pem'), 'utf8');
+let PUBLIC_KEY, PRIVATE_KEY;
+if (process.env.JWT_PUBLIC_KEY) {
+    PUBLIC_KEY = process.env.JWT_PUBLIC_KEY.split('\\n').join('\n');
+} else {
+    PUBLIC_KEY = fs.readFileSync(path.join(__dirname, '..', 'keys', 'public.pem'), 'utf8');
+}
+if (process.env.JWT_PRIVATE_KEY) {
+    PRIVATE_KEY = process.env.JWT_PRIVATE_KEY.split('\\n').join('\n');
+} else {
+    PRIVATE_KEY = fs.readFileSync(path.join(__dirname, '..', 'keys', 'private.pem'), 'utf8');
+}
 
 /**
  * Demonstra cifragem e decifragem RSA em uma única rota
