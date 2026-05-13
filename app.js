@@ -32,6 +32,17 @@ app.get('/', (req, res) => {
     });
 });
 
+// ─── ROTA TEMPORÁRIA DE DEBUG (remover depois!) ──────────────
+app.get('/debug/env', (req, res) => {
+    res.status(200).json({
+        DB_HOST: process.env.DB_HOST || '(não definido)',
+        DB_PORT: process.env.DB_PORT || '(não definido)',
+        DB_USER: process.env.DB_USER || '(não definido)',
+        DB_NAME: process.env.DB_NAME || '(não definido)',
+        DB_PASSWORD: process.env.DB_PASSWORD ? '***definido***' : '(não definido)'
+    });
+});
+
 // ─── CARREGAMENTO SEGURO DOS MÓDULOS ─────────────────────────
 try {
     const authRoutes     = require('./routes/auth');
