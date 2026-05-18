@@ -1,397 +1,179 @@
-# 🥊 API Aposta Luta
+# API Aposta Lutas
 
-API RESTful desenvolvida em **Node.js** com **Express** para gerenciar um sistema de apostas em lutas, com autenticação JWT assinada por **RSA-2048** e demonstração de criptografia assimétrica. Projeto desenvolvido como parte das atividades da disciplina de **Sistemas Distribuídos**.
+API RESTful para gerenciamento de apostas em lutas, com autenticação JWT assimétrica (RSA-2048).
 
----
+**URL de Produção:** `https://api-aposta-lutas.vercel.app`
 
-## 📋 Tecnologias Utilizadas
-
-| Tecnologia | Versão | Função |
-|---|---|---|
-| **Node.js** | v14+ | Runtime JavaScript |
-| **Express** | 5.x | Framework HTTP |
-| **MySQL2** | 3.x | Driver de banco de dados |
-| **jsonwebtoken** | 9.x | Geração e verificação de tokens JWT (RS256) |
-| **bcryptjs** | 3.x | Hash seguro de senhas |
-| **crypto** (nativo) | — | Geração de chaves RSA e cifragem/decifragem |
+> Não é necessário clonar o repositório ou configurar ambiente local para consumir a API — ela já está disponível publicamente via Vercel.
 
 ---
 
-## 🏗️ Estrutura do Projeto
+## Autenticação
 
-```
-api-aposta-luta/
-├── app.js                        # Ponto de entrada — configura rotas e middlewares
-├── db.js                         # Conexão com o banco de dados MySQL
-├── generate-keys.js              # Script para gerar o par de chaves RSA-2048
-├── schema.sql                    # Script SQL para criar as tabelas
-├── package.json                  # Dependências do projeto
-├── postman_collection.json       # Coleção pronta para importar no Postman
-├── keys/                         # Chaves RSA (geradas pelo generate-keys.js)
-│   ├── private.pem               # 🔑 Chave privada (NUNCA compartilhar!)
-│   └── public.pem                # 🔓 Chave pública
-├── middlewares/
-│   ├── authMiddleware.js         # Middleware de verificação do token JWT (RS256)
-│   └── cryptoMiddleware.js       # Middleware de demonstração de cifragem RSA
-└── routes/
-    ├── auth.js                   # Rotas de registro e login
-    └── apostas.js                # Rotas CRUD de apostas + demo criptografia
-```
-
----
-
-## 🔐 Segurança — Como Funciona
-
-### Autenticação JWT com RSA-2048 (RS256)
-
-A API utiliza **criptografia assimétrica** para autenticação, diferente do padrão simétrico (HS256) que usa uma senha secreta compartilhada.
-
-```
-┌─────────────┐     POST /auth/login      ┌──────────────┐
-│   Cliente    │ ──────────────────────── │   Servidor    │
-│  (Postman)   │                          │  (Node.js)    │
-│              │  ◄─── Token JWT ──────── │               │
-│              │       assinado com       │  🔑 Chave     │
-│              │       CHAVE PRIVADA      │    Privada     │
-│              │                          │               │
-│              │  ── Token JWT ─────────► │               │
-│              │     no header            │  🔓 Chave     │
-│              │     Authorization        │    Pública     │
-│              │                          │  (verifica)    │
-└─────────────┘                          └──────────────┘
-```
+O acesso às rotas protegidas exige um **Token JWT**, obtido após o login.
 
 **Fluxo:**
-1. O usuário faz **login** → o servidor **assina** o JWT com a **chave privada**
-2. O usuário envia o JWT nas requisições → o servidor **verifica** com a **chave pública**
-3. Se a assinatura é válida e o token não expirou → a requisição é autorizada
+1. Crie uma conta via `/auth/registrar`
+2. Faça login via `/auth/login` e guarde o `token` retornado
+3. Inclua o token em todas as requisições protegidas:
 
-### Hash de Senhas com bcrypt
-
-As senhas **nunca** são armazenadas em texto claro. O bcrypt:
-- Gera um **salt aleatório** para cada senha
-- Aplica **2^10 = 1.024 iterações** de hash
-- Armazena salt + hash juntos no campo `senha_hash`
-
-### Criptografia RSA (Demonstração Didática)
-
-A rota `/apostas/demo-cripto` demonstra **cifragem e decifragem RSA** — diferente do JWT que apenas **assina**:
-
-| Conceito | JWT (Auth) | Cifragem RSA (Demo) |
-|---|---|---|
-| Objetivo | Garantir **autenticidade** | Garantir **confidencialidade** |
-| Chave privada | **Assina** o token | **Decifra** a mensagem |
-| Chave pública | **Verifica** o token | **Cifra** a mensagem |
-| Conteúdo visível? | Sim (Base64) | Não (cifrado) |
+```
+Authorization: Bearer <SEU_TOKEN>
+```
 
 ---
 
-## ⚙️ Pré-requisitos
+## Endpoints
 
-- **Node.js** v14 ou superior
-- **MySQL** rodando localmente (ou em um servidor acessível)
-
----
-
-## 🚀 Instalação e Execução
-
-### 1. Clonar e instalar dependências
-
-```bash
-git clone <url-do-repositorio>
-cd api-aposta-luta
-npm install
-```
-
-### 2. Configurar o banco de dados
-
-1. Crie o banco de dados `api_apostas` no MySQL.
-2. Execute o arquivo `schema.sql` para criar as tabelas:
-   ```sql
-   SOURCE schema.sql;
-   ```
-3. Se necessário, edite as credenciais do MySQL no arquivo `db.js`:
-   ```javascript
-   const pool = mysql.createPool({
-       host: 'localhost',
-       user: 'root',
-       password: 'sua_senha_aqui',
-       database: 'api_apostas'
-   });
-   ```
-
-### 3. Gerar as chaves RSA
-
-Execute **uma única vez** antes de iniciar o servidor:
-
-```bash
-node generate-keys.js
-```
-
-Isso cria a pasta `keys/` com os arquivos `private.pem` e `public.pem`.
-
-> ⚠️ **Nunca compartilhe a chave privada nem suba ela para o Git!**
-
-### 4. Iniciar o servidor
-
-```bash
-npm start
-```
-
-O servidor rodará em `http://localhost:3000`.
-
----
-
-## 📖 Documentação da API (Endpoints)
-
-### Rotas Públicas (sem autenticação)
+### Públicos (sem autenticação)
 
 #### `POST /auth/registrar` — Criar conta
 
-Registra um novo usuário. A senha é armazenada como hash bcrypt.
-
-**Body (JSON):**
 ```json
-{
-    "usuario": "eduardo",
-    "senha": "minhasenha123"
-}
-```
+// Corpo
+{ "usuario": "nome", "senha": "senha" }
 
-**Respostas:**
-| Código | Descrição |
-|---|---|
-| `201` | Usuário registrado com sucesso |
-| `400` | Campos obrigatórios ausentes ou senha < 6 caracteres |
-| `409` | Nome de usuário já está em uso |
+// Resposta 201 — confirmação do registro
+```
 
 ---
 
-#### `POST /auth/login` — Fazer login e obter token JWT
+#### `POST /auth/login` — Fazer login
 
-Autentica o usuário e retorna um token JWT assinado com RS256, válido por **1 hora**.
-
-**Body (JSON):**
 ```json
-{
-    "usuario": "eduardo",
-    "senha": "minhasenha123"
-}
-```
+// Corpo
+{ "usuario": "nome", "senha": "senha" }
 
-**Resposta de sucesso (200):**
-```json
+// Resposta 200
 {
     "mensagem": "Login realizado com sucesso!",
-    "token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "token": "eyJhbGciOiJSUzI1NiIsInR...",
     "tipo": "Bearer",
-    "expira_em": "1h",
-    "instrucao": "Use o token no header: Authorization: Bearer <token>",
-    "algoritmo": {
-        "jwt": "RS256",
-        "rsa_bits": 2048,
-        "hash": "SHA-256"
-    }
+    "expira_em": "1h"
 }
 ```
-
-> 📌 **Copie o valor do campo `token`** — ele será usado em todas as rotas protegidas.
-
-**Respostas de erro:**
-| Código | Descrição |
-|---|---|
-| `400` | Campos obrigatórios ausentes |
-| `401` | Usuário ou senha inválidos |
 
 ---
 
 #### `POST /apostas/demo-cripto` — Demonstração de criptografia RSA
 
-Rota didática que mostra o processo completo de **cifragem** (com chave pública) e **decifragem** (com chave privada) usando RSA-2048.
+Endpoint didático que ilustra o ciclo de cifragem e decifragem assimétrica.
 
-**Body (JSON):**
 ```json
-{
-    "mensagem": "Texto secreto para demonstrar RSA!"
-}
-```
+// Corpo
+{ "mensagem": "Texto simples para processamento" }
 
-**Resposta de sucesso (200):**
-```json
-{
-    "explicacao": "Demonstração de cifragem RSA assimétrica",
-    "algoritmo": {
-        "nome": "RSA-2048",
-        "padding": "OAEP com SHA-256",
-        "chave_bits": 2048
-    },
-    "passo_1_original": {
-        "mensagem": "Texto secreto para demonstrar RSA!",
-        "bytes_utf8": 34
-    },
-    "passo_2_cifrado": {
-        "descricao": "Cifrado com a CHAVE PÚBLICA — ninguém lê sem a chave privada",
-        "conteudo": "base64_do_texto_cifrado...",
-        "bytes": 256
-    },
-    "passo_3_decifrado": {
-        "descricao": "Decifrado com a CHAVE PRIVADA — somente o servidor consegue",
-        "mensagem": "Texto secreto para demonstrar RSA!"
-    },
-    "conclusao": "✅ Cifragem e decifragem funcionaram corretamente!"
-}
+// Resposta 200 — retorna o texto original, a versão cifrada (Base64) e a decifragem pelo servidor
 ```
 
 ---
 
-### 🔒 Rotas Protegidas (exigem token JWT)
+### Protegidos (requerem `Authorization: Bearer <TOKEN>`)
 
-Todas as rotas abaixo exigem o header de autenticação:
+#### `POST /apostas` — Registrar aposta
 
-```
-Authorization: Bearer <token_obtido_no_login>
-```
-
-**Respostas comuns de autenticação:**
-| Código | Descrição |
-|---|---|
-| `401` | Token não fornecido, inválido, formato incorreto ou expirado |
-
----
-
-#### `POST /apostas` — Criar aposta
-
-**Body (JSON):**
 ```json
-{
-    "valor": 150.50,
-    "id_luta": 1,
-    "id_lutador": 2,
-    "id_apostador": 1
-}
-```
+// Corpo
+{ "valor": 150.50, "id_luta": 1, "id_lutador": 2, "id_apostador": 1 }
 
-**Respostas:**
-| Código | Descrição |
-|---|---|
-| `201` | Aposta registrada com sucesso |
-| `400` | Campos obrigatórios ausentes, valor ≤ 0 ou IDs inexistentes |
+// Resposta 201 — dados inseridos com o ID gerado pelo banco
+```
 
 ---
 
 #### `GET /apostas` — Listar apostas
 
-Retorna todas as apostas. Aceita filtro opcional por apostador.
+Suporta filtragem por apostador:
 
-**Exemplos:**
-- `GET /apostas` — lista todas
-- `GET /apostas?id_apostador=1` — filtra por apostador
+```
+GET /apostas?id_apostador=1
+```
 
-**Resposta (200):**
 ```json
-[
-    {
-        "id": 1,
-        "valor": "150.50",
-        "id_luta": 1,
-        "id_lutador": 2,
-        "id_apostador": 1
-    }
-]
+// Resposta 200
+[{ "id": 1, "valor": "150.50", "id_luta": 1, "id_lutador": 2, "id_apostador": 1 }]
 ```
 
 ---
 
 #### `PUT /apostas/:id` — Atualizar aposta
 
-**Exemplo:** `PUT /apostas/1`
+Substitua `:id` pelo identificador numérico da aposta. O corpo deve conter todos os campos.
 
-**Body (JSON):**
 ```json
-{
-    "valor": 200.00,
-    "id_luta": 1,
-    "id_lutador": 3,
-    "id_apostador": 1
-}
-```
+// Corpo
+{ "valor": 200.00, "id_luta": 1, "id_lutador": 3, "id_apostador": 1 }
 
-**Respostas:**
-| Código | Descrição |
-|---|---|
-| `200` | Aposta atualizada com sucesso |
-| `404` | Aposta não encontrada |
-| `400` | Dados incorretos |
+// Resposta 200 — confirmação da atualização
+```
 
 ---
 
 #### `DELETE /apostas/:id` — Remover aposta
 
-**Exemplo:** `DELETE /apostas/1`
+Substitua `:id` pelo identificador da aposta a ser excluída.
 
-Sem body na requisição.
-
-**Respostas:**
-| Código | Descrição |
-|---|---|
-| `200` | Aposta removida com sucesso |
-| `404` | Aposta não encontrada |
-
----
-
-## 🧪 Testando a API (Passo a Passo)
-
-Use o **Postman**, **Insomnia** ou **cURL**. O projeto inclui um arquivo `postman_collection.json` que pode ser importado diretamente no Postman.
-
-### Fluxo completo de teste:
-
-**1. Registrar um usuário**
 ```
-POST http://localhost:3000/auth/registrar
-Content-Type: application/json
-
-{ "usuario": "eduardo", "senha": "minhasenha123" }
-```
-
-**2. Fazer login e copiar o token**
-```
-POST http://localhost:3000/auth/login
-Content-Type: application/json
-
-{ "usuario": "eduardo", "senha": "minhasenha123" }
-```
-
-**3. Criar uma aposta (usando o token)**
-```
-POST http://localhost:3000/apostas
-Content-Type: application/json
-Authorization: Bearer <cole_o_token_aqui>
-
-{ "valor": 150.50, "id_luta": 1, "id_lutador": 2, "id_apostador": 1 }
-```
-
-**4. Listar apostas**
-```
-GET http://localhost:3000/apostas
-Authorization: Bearer <cole_o_token_aqui>
-```
-
-**5. Testar a demo de criptografia RSA**
-```
-POST http://localhost:3000/apostas/demo-cripto
-Content-Type: application/json
-
-{ "mensagem": "Olá, esta mensagem será cifrada com RSA!" }
+// Resposta 200 — registro removido permanentemente
 ```
 
 ---
 
-## 📚 Conceitos de Segurança Demonstrados
+## Testes com Postman
 
-| Conceito | Implementação | Arquivo |
-|---|---|---|
-| **Hash de senhas** | bcrypt com salt e 10 rounds | `routes/auth.js` |
-| **Autenticação por token** | JWT assinado com RS256 | `routes/auth.js` |
-| **Verificação de token** | Middleware com chave pública | `middlewares/authMiddleware.js` |
-| **Cifragem assimétrica** | RSA-2048 com OAEP + SHA-256 | `middlewares/cryptoMiddleware.js` |
-| **Geração de chaves** | Par RSA-2048 (PKCS#8 / SPKI) | `generate-keys.js` |
+O repositório inclui o arquivo `postman_collection.json`. Para usar:
+
+1. Importe o arquivo no Postman
+2. Aponte as requisições para `https://api-aposta-lutas.vercel.app`
+3. Após o login, cole o `token` retornado na aba **Authorization** das rotas protegidas
+
+---
+
+## Execução Local (opcional)
+
+Necessário apenas para modificar o código-fonte.
+
+**Pré-requisitos:** Node.js 14+ e MySQL
+
+**Configuração:**
+1. Crie o banco de dados `api_apostas` no MySQL
+2. Execute o `schema.sql` (raiz do projeto) para criar as tabelas
+3. Edite `db.js` com suas credenciais locais do MySQL
+
+**Inicialização:**
+```bash
+npm install          # Instala dependências
+node generate-keys.js  # Gera o par de chaves RSA (apenas na primeira vez)
+npm start            # Inicia o servidor em http://localhost:3000
+```
+
+---
+
+## Fundamentos Técnicos
+
+### Arquitetura RESTful
+
+Comunicação *stateless* entre cliente e servidor, com roteamento semântico dos métodos HTTP (GET, POST, PUT, DELETE) via **Express.js** sobre **Node.js**. A conexão com o banco **MySQL** usa *Connection Pool*, reutilizando conexões TCP abertas e evitando sobrecarga.
+
+### JWT com Criptografia Assimétrica (RS256)
+
+Diferente do uso comum de chave simétrica (um único segredo para assinar e validar), esta API usa **RSA-2048**:
+
+- O servidor assina o token com a **Chave Privada** no momento do login
+- Nas rotas protegidas, a autenticidade é validada usando apenas a **Chave Pública**
+
+Isso possibilita que outros microserviços validem sessões de forma independente — basta ter a Chave Pública, sem precisar de acesso ao banco ou compartilhamento de segredos.
+
+### Armazenamento Seguro de Senhas (Bcrypt)
+
+Senhas nunca são armazenadas em texto plano. O algoritmo **bcrypt** aplica:
+
+- **Salt aleatório** por usuário, concatenado antes do hash
+- **Work Factor exponencial** (~1024 iterações), tornando ataques de força bruta e *rainbow tables* computacionalmente inviáveis
+
+### Criptografia RSA na Rota de Demonstração
+
+A rota `/apostas/demo-cripto` mostra o ciclo completo de confidencialidade:
+
+- **Cifragem:** texto cifrado com a Chave Pública usando padding OAEP (SHA-256), gerando um bloco ilegível em Base64
+- **Decifragem:** apenas o servidor, detentor da Chave Privada, consegue reverter o bloco à mensagem original
