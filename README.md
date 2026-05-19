@@ -155,14 +155,15 @@ npm start            # Inicia o servidor em http://localhost:3000
 
 Comunicação *stateless* entre cliente e servidor, com roteamento semântico dos métodos HTTP (GET, POST, PUT, DELETE) via **Express.js** sobre **Node.js**. A conexão com o banco **MySQL** usa *Connection Pool*, reutilizando conexões TCP abertas e evitando sobrecarga.
 
-### JWT com Criptografia Assimétrica (RS256)
+### JWT com Criptografia Assimétrica (RS256) e Algoritmo RSA-2048
 
-Diferente do uso comum de chave simétrica (um único segredo para assinar e validar), esta API usa **RSA-2048**:
+Diferente do uso comum de chave simétrica (um único segredo para assinar e validar), esta API utiliza o algoritmo **RSA (Rivest-Shamir-Adleman)** com chaves de 2048 bits, geradas nativamente pelo módulo `crypto` do Node.js. A segurança matemática do RSA apoia-se na inviabilidade computacional de reverter (fatorar) a multiplicação de dois números primos gigantescos.
 
-- O servidor assina o token com a **Chave Privada** no momento do login
-- Nas rotas protegidas, a autenticidade é validada usando apenas a **Chave Pública**
+Neste modelo:
+- A **Chave Privada** (formato PKCS#8) é mantida em sigilo no servidor e utilizada para **assinar** o token no momento do login.
+- A **Chave Pública** (formato SPKI) pode ser livremente distribuída e é usada nas rotas protegidas para **verificar** a autenticidade do token.
 
-Isso possibilita que outros microserviços validem sessões de forma independente — basta ter a Chave Pública, sem precisar de acesso ao banco ou compartilhamento de segredos.
+Isso possibilita que outros microserviços validem sessões de forma independente — basta ter a Chave Pública (formato legível PEM/Base64), eliminando a necessidade de consultar o banco de dados centralizado ou compartilhar segredos privados.
 
 ### Armazenamento Seguro de Senhas (Bcrypt)
 
